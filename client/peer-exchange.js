@@ -3,6 +3,8 @@ import { createClient } from './websocket.js';
 export function createPeerExchange(client, peerConnectionConfig) {
 
     const listeners = new Set();
+    const connections = new Set();
+
     function onConnection(callback) {
         listeners.add(callback);
     }
@@ -12,7 +14,13 @@ export function createPeerExchange(client, peerConnectionConfig) {
             if(signal.sdp.type == 'offer') {
                 const conn = await createConnection(signal.sdp);
                 listeners.forEach(callback => callback(conn));
+                connections.add(conn);
             }
+        } else if (signal.ice) {
+            connections.forEach(conn => {
+                const iceCandidate = new RTCIceCandidate(signal.ice);
+                conn.addIceCandidate(iceCandidate)
+            });
         }
     });
 
