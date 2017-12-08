@@ -1,33 +1,50 @@
-import { createUUID } from './random.js';
+import { createClient } from './websocket.js';
 
-export function createPeerExchange(address) {
-    const uuid = createUUID();
+export function createPeerExchange(client, peerConnectionConfig) {
 
-    const server = new WebSocket(address);
     const listeners = new Set();
-
-    function onMessage(message) {
-        const data = JSON.parse(message.data);
-
-        if (data.uuid === uuid) {
-            return;
-        }
-
-        listeners.forEach(callback => callback(data, send));
-    }
-
-    function listen(callback) {
+    function onConnection(callback) {
         listeners.add(callback);
     }
 
-    function send(data) {
-        server.send(JSON.stringify(Object.assign({uuid}, data)));
+    client.listen(async signal => {
+        if (signal.sdp) {
+            if(signal.sdp.type == 'offer') {
+                const conn = await createConnection(signal.sdp);
+                listeners.forEach(callback => callback(conn));
+            }
+        }
+    });
+
+    async function createConnection(sdp) {
+        const conn = new RTCPeerConnection(peerConnectionConfig);
+
+        const remoteDesc = new RTCSessionDescription(sdp);
+        await conn.setRemoteDescription(remoteDesc);
+
+        const localDesc = await conn.createAnswer();
+        await conn.setLocalDescription(localDesc);
+
+        client.send({sdp: localDesc});
+
+        conn.addEventListener('icecandidate', event => {
+            if(event.candidate != null) {
+                client.send({ice: event.candidate});
+            }
+        });
+
+        return conn;
     }
 
-    server.addEventListener('message', onMessage);
+    async function extendOffer() {
+        const conn = new RTCPeerConnection(peerConnectionConfig);
+        const localDesc = await conn.createOffer();
+        await conn.setLocalDescription(localDesc);
+        client.send({sdp: localDesc});
+    }
 
     return {
-        listen,
-        send,
+        onConnection,
+        extendOffer,
     };
 }
