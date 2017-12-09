@@ -3,6 +3,8 @@ const Session = require('./session');
 const Client = require('./client');
 const { createId } = require('./random');
 
+const PORT = process.env.PORT || 9000;
+
 const server = new WebSocketServer({port: 9000});
 
 const sessions = new Map;
@@ -28,13 +30,6 @@ function getSession(id) {
     return sessions.get(id);
 }
 
-function broadcastSession(session, message) {
-    const clients = [...session.clients];
-    clients.forEach(client => {
-        client.send(message);
-    });
-}
-
 server.on('connection', conn => {
     console.log('Connection established');
     const client = createClient(conn);
@@ -47,7 +42,6 @@ server.on('connection', conn => {
             const session = createSession();
             session.join(client);
 
-            client.state = data.state;
             client.send({
                 type: 'session-created',
                 id: session.id,
@@ -55,11 +49,7 @@ server.on('connection', conn => {
         } else if (data.type === 'join-session') {
             const session = getSession(data.id) || createSession(data.id);
             session.join(client);
-
-            client.state = data.state;
-        } else if (data.type === 'state-update') {
-            const [key, value] = data.state;
-            client.state[data.fragment][key] = value;
+        } else {
             client.broadcast(data);
         }
     });
@@ -77,3 +67,5 @@ server.on('connection', conn => {
         console.log(sessions);
     });
 });
+
+console.log(`Running on port ${PORT}`);

@@ -5,17 +5,6 @@ class Client
         this.conn = conn;
         this.id = id;
         this.session = null;
-
-        this.state = {
-            arena: {
-                matrix: [],
-            },
-            player: {
-                matrix: [],
-                pos: {x: 0, y: 0},
-                score: 0,
-            },
-        };
     }
 
     broadcast(data)
@@ -36,10 +25,10 @@ class Client
         const msg = JSON.stringify(data);
         console.log(`Sending message ${msg}`);
         this.conn.send(msg, function ack(err) {
-        if (err) {
-            console.log('Error sending message', msg, err);
-        }
-    });
+            if (err) {
+                console.log('Error sending message', msg, err);
+            }
+        });
     }
 }
 
