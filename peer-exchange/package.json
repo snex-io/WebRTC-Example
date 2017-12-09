@@ -1,0 +1,12 @@
+{
+  "name": "@snex/peer-exchange",
+  "version": "0.1.0",
+  "description": "Peer Exchange server for WebRTC",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Pontus Alexander <pontus.alexander@gmail.com>",
+  "license": "ISC"
+}
