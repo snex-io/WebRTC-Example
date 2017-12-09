@@ -1,18 +1,11 @@
 const WebSocketServer = require('ws').Server;
 const Session = require('./session');
 const Client = require('./client');
+const { createId } = require('./random');
 
 const server = new WebSocketServer({port: 9000});
 
 const sessions = new Map;
-
-function createId(len = 6, chars = 'abcdefghjkmnopqrstvwxyz01234567890') {
-    let id = '';
-    while (len--) {
-        id += chars[Math.random() * chars.length | 0];
-    }
-    return id;
-}
 
 function createClient(conn, id = createId()) {
     return new Client(conn, id);
@@ -35,21 +28,10 @@ function getSession(id) {
     return sessions.get(id);
 }
 
-function broadcastSession(session) {
+function broadcastSession(session, message) {
     const clients = [...session.clients];
     clients.forEach(client => {
-        client.send({
-            type: 'session-broadcast',
-            peers: {
-                you: client.id,
-                clients: clients.map(client => {
-                    return {
-                        id: client.id,
-                        state: client.state,
-                    }
-                }),
-            },
-        });
+        client.send(message);
     });
 }
 
@@ -75,13 +57,11 @@ server.on('connection', conn => {
             session.join(client);
 
             client.state = data.state;
-            broadcastSession(session);
         } else if (data.type === 'state-update') {
             const [key, value] = data.state;
             client.state[data.fragment][key] = value;
             client.broadcast(data);
         }
-
     });
 
     conn.on('close', () => {
@@ -93,8 +73,6 @@ server.on('connection', conn => {
                 sessions.delete(session.id);
             }
         }
-
-        broadcastSession(session);
 
         console.log(sessions);
     });
