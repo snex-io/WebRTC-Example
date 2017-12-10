@@ -1,25 +1,40 @@
-const {createMessageHandler} = require('../handler.js');
+const {Client} = require('../models/client.js');
+const {createConnectionHandler} = require('../handler.js');
 
-describe('Handler', () => {
-    describe('#messageHandler', () => {
-        let channelsMock;
-        let clientMock;
+describe('createConnectionHandler', () => {
+    it('listens to messages', () => {
+        const regMock = {
+            handleMessage: jest.fn(),
+            handleClose: jest.fn(),
+        };
 
-        let handleMessage;
+        const handler = createConnectionHandler(regMock);
 
-        beforeEach(() => {
-            clientMock = Symbol();
+        const connMock = {
+            on: jest.fn(),
+        };
 
-            channelsMock = {
-                get: jest.fn(),
-            };
+        handler(connMock);
 
-            handleMessage = createMessageHandler(channelsMock, clientMock);
-        });
+        expect(connMock.on).toHaveBeenCalledTimes(2);
+        expect(connMock.on.mock.calls[0][0]).toBe('message');
+        expect(connMock.on.mock.calls[0][1]).toBeInstanceOf(Function);
+        expect(connMock.on.mock.calls[1][0]).toBe('close');
+        expect(connMock.on.mock.calls[1][1]).toBeInstanceOf(Function);
 
-        it('calls channels.get for channelId in payload', () => {
-            handleMessage(JSON.stringify({channelId: 'lkqcuj9qoj'}));
-            expect(channelsMock.get).toBeCalledWith('lkqcuj9qoj', clientMock);
-        });
+        const messageCallback = connMock.on.mock.calls[0][1];
+        expect(regMock.handleMessage).toHaveBeenCalledTimes(0);
+        messageCallback('arbitrary message');
+        expect(regMock.handleMessage).toHaveBeenCalledTimes(1);
+        expect(regMock.handleMessage.mock.calls[0][0]).toBeInstanceOf(Client);
+        expect(regMock.handleMessage.mock.calls[0][0].conn).toBe(connMock);
+        expect(regMock.handleMessage.mock.calls[0][1]).toBe('arbitrary message');
+
+        const disconnectCallback = connMock.on.mock.calls[1][1];
+        expect(regMock.handleClose).toHaveBeenCalledTimes(0);
+        disconnectCallback();
+        expect(regMock.handleClose).toHaveBeenCalledTimes(1);
+        expect(regMock.handleClose.mock.calls[0][0]).toBeInstanceOf(Client);
+        expect(regMock.handleClose.mock.calls[0][0].conn).toBe(connMock);
     });
-})
+});

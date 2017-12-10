@@ -1,15 +1,19 @@
-const Client = require('./models/client');
+const {Client} = require('./models/client.js');
 
-function createMessageHandler(channels, client) {
+function createConnectionHandler(registry) {
+    return function handleConnection(conn) {
+        const client = new Client(conn);
 
-    return function handleMessage(message) {
-        console.log('Message received', message);
-        const data = JSON.parse(message);
+        conn.on('message', message => {
+            registry.handleMessage(client, message);
+        });
 
-        const channel = channels.get(data.channelId, client);
-    }
+        conn.on('close', () => {
+            registry.handleClose(client);
+        });
+    };
 }
 
 module.exports = {
-    createMessageHandler,
+    createConnectionHandler,
 };
