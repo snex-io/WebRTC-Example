@@ -14,7 +14,8 @@ class Registry {
         });
     }
 
-    handleMessage(client, data) {
+    handleMessage(client, message) {
+        const data = JSON.parse(message);
         const {channelId} = data;
 
         if (!this.channels.has(channelId)) {

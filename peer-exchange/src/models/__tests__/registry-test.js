@@ -10,8 +10,8 @@ describe('Registry', () => {
         client1.send = jest.fn();
         client2.send = jest.fn();
 
-        reg.handleMessage(client1, {channelId: 'x', type: "greet"});
-        reg.handleMessage(client2, {channelId: 'x', type: "offer"});
+        reg.handleMessage(client1, JSON.stringify({channelId: 'x', type: "greet"}));
+        reg.handleMessage(client2, JSON.stringify({channelId: 'x', type: "offer"}));
 
         expect(client1.send).toHaveBeenCalledTimes(1);
         expect(client1.send).lastCalledWith({"channelId": "x", "type": "offer"});
@@ -22,7 +22,7 @@ describe('Registry', () => {
         const reg = new Registry();
         const client = new Client();
 
-        reg.handleMessage(client, {channelId: 'x'});
+        reg.handleMessage(client, JSON.stringify({channelId: 'x'}));
         reg.handleDisconnect(client);
 
         expect(reg.channels.size).toBe(0);
