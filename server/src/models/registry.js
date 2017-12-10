@@ -5,7 +5,7 @@ class Registry {
         this.channels = new Map();
     }
 
-    handleDisconnect(client) {
+    handleClose(client) {
         this.channels.forEach((channel, id) => {
             channel.leave(client);
             if (channel.clients.size === 0) {
