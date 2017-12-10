@@ -8,7 +8,6 @@ class Client
 {
     constructor(conn) {
         this.conn = conn;
-        this.channels = new Set();
     }
 
     send(data) {

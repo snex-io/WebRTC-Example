@@ -12,14 +12,10 @@ class Channel
 
     join(client) {
         this.clients.add(client);
-
-        client.channels.add(this);
     }
 
     leave(client) {
         this.clients.delete(client);
-
-        client.channels.delete(this);
     }
 }
 
