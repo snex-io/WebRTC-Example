@@ -1,10 +1,11 @@
+import { peerConnectionConfig } from './config.js';
 import { createUUID } from './random.js';
 
 function errorHandler(error) {
     console.error(error);
 }
 
-export function createHost(peerExchange, peerConnectionConfig) {
+export function createHost(peerExchange) {
     const listeners = new Set();
 
     function onConnection(callback) {
@@ -18,7 +19,7 @@ export function createHost(peerExchange, peerConnectionConfig) {
     peerExchange.listen(async signal => {
         console.log("Host signal", signal);
         if (signal.sdp && signal.sdp.type === "offer") {
-            const {conn, send} = createConn(peerExchange, peerConnectionConfig);
+            const {conn, send} = createConn(peerExchange);
 
             emitConnection(conn);
 
@@ -32,13 +33,17 @@ export function createHost(peerExchange, peerConnectionConfig) {
         }
     });
 
+    peerExchange.send({
+
+    })
+
     return {
         onConnection,
     };
 }
 
-export function createGuest(peerExchange, peerConnectionConfig) {
-    const {conn, onSignal, send} = createConn(peerExchange, peerConnectionConfig);
+export function createGuest(peerExchange) {
+    const {conn, onSignal, send} = createConn(peerExchange);
 
     onSignal(signal => {
         console.log("Guest signal", signal);
@@ -61,9 +66,8 @@ export function createGuest(peerExchange, peerConnectionConfig) {
 }
 
 
-export function createConn(peerExchange, peerConnectionConfig) {
+export function createConn(peerExchange, channelId) {
     const conn = new RTCPeerConnection(peerConnectionConfig);
-    const uuid = createUUID();
 
     conn.addEventListener('icecandidate', event => {
         if(event.candidate != null) {
@@ -87,12 +91,13 @@ export function createConn(peerExchange, peerConnectionConfig) {
 
     onSignal(signal => {
         if(signal.ice) {
-            conn.addIceCandidate(new RTCIceCandidate(signal.ice)).catch(errorHandler);
+            const iceCandidate = new RTCIceCandidate(signal.ice);
+            conn.addIceCandidate(iceCandidate).catch(errorHandler);
         }
     });
 
     function send(data) {
-        peerExchange.send(Object.assign({}, data, {uuid}));
+        peerExchange.send(Object.assign({}, data, {channelId}));
     }
 
     return {
