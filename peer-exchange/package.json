@@ -9,5 +9,8 @@
   },
   "keywords": [],
   "author": "Pontus Alexander <pontus.alexander@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^3.3.2"
+  }
 }
