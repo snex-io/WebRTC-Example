@@ -1,6 +1,6 @@
 const WebSocketServer = require('ws').Server;
-const Session = require('./session');
-const Client = require('./client');
+const Session = require('./models/session');
+const Client = require('./models/client');
 const { createId } = require('./random');
 
 const PORT = process.env.PORT || 9000;
