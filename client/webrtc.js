@@ -1,6 +1,4 @@
-import { dataChannelConfig, peerConnectionConfig } from './config.js';
-import { createPeerExchange } from './peer-exchange.js';
-import { createHost, createGuest} from './connection.js';
+import { createPeer } from './peer.js';
 
 var peerConnection;
 var serverConnection;
@@ -11,13 +9,12 @@ async function pageReady() {
 
     document.querySelector("button#connect")
     .addEventListener("click", connect);
-
-    serverConnection = await createPeerExchange('ws://' + window.location.hostname + ':8080');
 }
 
-function host() {
-    const host = createHost(serverConnection, peerConnectionConfig);
-    host.onConnection(conn => {
+async function host() {
+    const peer = await createPeer('a0vm912umvj012');
+
+    peer.onConnection(conn => {
         console.log("Host Received Connection", conn);
 
         conn.addEventListener('addstream', stream => {
@@ -36,11 +33,11 @@ async function connect() {
 
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-    const guest = createGuest(serverConnection, peerConnectionConfig);
-    guest.conn.addStream(stream);
+    const peer = await createPeer('a0vm912umvj012');
+    peer.conn.addStream(stream);
 
     console.log("Connecting");
-    guest.connect();
+    peer.connect();
 }
 
 async function setup() {

@@ -1,5 +1,5 @@
 export async function createPeerExchange(address) {
-    const server = new WebSocket(address);
+    const socket = new WebSocket(address);
     const listeners = new Set();
 
     function onMessage(message) {
@@ -12,13 +12,13 @@ export async function createPeerExchange(address) {
     }
 
     function send(data) {
-        server.send(JSON.stringify(data));
+        socket.send(JSON.stringify(data));
     }
 
-    server.addEventListener('message', onMessage);
+    socket.addEventListener('message', onMessage);
 
     return new Promise(resolve => {
-        server.addEventListener('open', () => {
+        socket.addEventListener('open', () => {
             resolve({
                 listen,
                 send,
