@@ -11,6 +11,7 @@ class Client
     }
 
     send(data) {
+        console.log("Sending message", data);
         const msg = JSON.stringify(data);
         this.conn.send(msg, ack);
     }

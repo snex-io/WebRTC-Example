@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "A generic WebRTC library and peering server.",
   "scripts": {
+    "start:client": "serve ./client",
     "start:server": "node server/src/server.js",
     "test": "jest"
   },

@@ -15,6 +15,8 @@ class Registry {
     }
 
     handleMessage(client, message) {
+        console.log("Handling message", message);
+
         const data = JSON.parse(message);
         const {channelId} = data;
 
